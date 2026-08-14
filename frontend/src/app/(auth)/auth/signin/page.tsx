@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth'
 import { FullPageSpinner } from '@/components/shared/LoadingSpinner'
+import { Leaf } from 'lucide-react'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -24,7 +25,7 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/dashboard')
+      router.replace('/team')
     }
   }, [loading, user, router])
 
@@ -41,7 +42,7 @@ export default function SignInPage() {
     try {
       await signInWithEmail(data.email, data.password)
       toast.success('Signed in successfully')
-      router.replace('/dashboard')
+      router.replace('/team')
       router.refresh()
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('email-not-verified')) {
@@ -62,17 +63,21 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-lg bg-[#472914] p-8 shadow-lg">
       <div className="space-y-1 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
-        <p className="text-sm text-zinc-500">Enter your credentials to continue</p>
+        <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#F0BF1F] bg-[#3a2110]">
+          <Leaf className="h-8 w-8 text-[#F0BF1F]" />
+        </div>
+        <h1 className="font-['Roboto_Condensed'] text-3xl font-extrabold text-[#F0BF1F]">
+          Sign in
+        </h1>
+        <p className="text-sm text-[#F0BF1F]/70">Enter your credentials to continue</p>
       </div>
 
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        className="flex w-full items-center justify-center gap-3 rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-      >
+        className="flex w-full items-center justify-center gap-3 rounded-md border border-[#F0BF1F]/30 bg-white px-4 py-2.5 text-sm font-medium text-[#472914] shadow-sm transition-colors hover:bg-zinc-100"      >
         <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -96,17 +101,17 @@ export default function SignInPage() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
+          <span className="w-full border-t border-[#F0BF1F]/30" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-zinc-50 px-2 text-zinc-400 dark:bg-zinc-950">or</span>
+          <span className="bg-[#472914] px-2 text-[#F0BF1F]/70">or</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
+          <label htmlFor="email" className="text-sm font-medium text-[#F0BF1F]">
+            Username
           </label>
           <input
             id="email"
@@ -114,12 +119,12 @@ export default function SignInPage() {
             autoComplete="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-500 focus:outline-none aria-invalid:border-red-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-md border border-[#F0BF1F]/30 bg-[#3a2110] px-3 py-2 text-sm text-white shadow-sm placeholder:text-[#F0BF1F]/40 focus:ring-2 focus:ring-[#F0BF1F] focus:outline-none aria-invalid:border-red-500"
             placeholder="you@example.com"
             {...register('email')}
           />
           {errors.email && (
-            <p id="email-error" className="text-xs text-red-500" role="alert">
+            <p id="email-error" className="text-xs text-red-400" role="alert">
               {errors.email.message}
             </p>
           )}
@@ -127,7 +132,7 @@ export default function SignInPage() {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label htmlFor="password" className="text-sm font-medium">
+            <label htmlFor="password" className="text-sm font-medium text-[#F0BF1F]">
               Password
             </label>
           </div>
@@ -137,32 +142,39 @@ export default function SignInPage() {
             autoComplete="current-password"
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'password-error' : undefined}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-500 focus:outline-none aria-invalid:border-red-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-md border border-[#F0BF1F]/30 bg-[#3a2110] px-3 py-2 text-sm text-white shadow-sm placeholder:text-[#F0BF1F]/40 focus:ring-2 focus:ring-[#F0BF1F] focus:outline-none aria-invalid:border-red-500"
             placeholder="••••••••"
             {...register('password')}
           />
           {errors.password && (
-            <p id="password-error" className="text-xs text-red-500" role="alert">
+            <p id="password-error" className="text-xs text-red-400" role="alert">
               {errors.password.message}
             </p>
           )}
         </div>
 
+        <div className="flex items-center justify-between text-xs">
+          <label className="flex items-center gap-2 text-[#F0BF1F]/70">
+            <input type="checkbox" className="rounded border-[#F0BF1F]/30" />
+            Remember me
+          </label>
+          <span className="text-[#F0BF1F]/70 hover:underline cursor-pointer">
+            Forgot Password?
+          </span>
+        </div>
+
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+          className="w-full rounded-md bg-[#F0BF1F] px-4 py-2.5 text-sm font-medium text-[#472914] transition-colors hover:bg-[#F0BF1F]/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
+          {isSubmitting ? 'Signing in…' : 'Log In'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-zinc-500">
+      <p className="text-center text-sm text-[#F0BF1F]/70">
         Don&apos;t have an account?{' '}
-        <Link
-          href="/auth/signup"
-          className="font-medium text-zinc-900 hover:underline dark:text-white"
-        >
+        <Link href="/auth/signup" className="font-medium text-[#F0BF1F] hover:underline">
           Create one
         </Link>
       </p>
