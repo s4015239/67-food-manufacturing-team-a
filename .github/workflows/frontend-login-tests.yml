@@ -7,85 +7,35 @@ on:
     branches: [main]
 
 jobs:
-  login-redirect-retry:
-    name: Check /team eventually reaches target (retries, no browser)
+  e2e-login:
+    name: Playwright login smoke
     runs-on: ubuntu-latest
     env:
-      BASE_URL: ${{ secrets.DEPLOYED_URL }}
-      TEAM_PATH: "/team"
+      DEPLOYED_URL: ${{ secrets.DEPLOYED_URL }}
+      TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      LOGIN_PATH: ${{ secrets.LOGIN_PATH || '/auth/signin' }}
       EXPECTED_FINAL_PATH: ${{ secrets.EXPECTED_REDIRECT_PATH || '/team' }}
-      RETRY_COUNT: 6
-      RETRY_INTERVAL: 5
     steps:
-      - name: Checkout (optional)
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Retry-check /team final URL or 200
-        run: |
-          set -euo pipefail
+      - name: Setup Node (use pnpm or npm as needed)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
 
-          BASE="${BASE_URL:-}"
-          TEAM_PATH="${TEAM_PATH:-/team}"
-          EXPECTED="${EXPECTED_FINAL_PATH:-/team}"
-          RETRIES="${RETRY_COUNT:-6}"
-          INTERVAL="${RETRY_INTERVAL:-5}"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-          if [ -z "$BASE" ]; then
-            echo "ERROR: DEPLOYED_URL secret is not set."
-            exit 1
-          fi
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-          TEAM_URL="${BASE%/}${TEAM_PATH}"
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
 
-          echo "Initial HEAD request to ${TEAM_URL} (no follow)..."
-          init_headers=$(curl -s -I "${TEAM_URL}" || true)
-          init_status=$(echo "$init_headers" | head -n1 | awk '{print $2}' || true)
-          init_location=$(echo "$init_headers" | grep -i '^Location:' | awk '{print $2}' | tr -d '\r' || true)
-          echo " -> Initial status: ${init_status:-<none>}"
-          echo " -> Initial Location header: ${init_location:-<none>}"
-
-          attempt=0
-          last_eff_url=""
-          last_eff_code=""
-
-          while [ "$attempt" -lt "$RETRIES" ]; do
-            attempt=$((attempt + 1))
-            echo "Attempt ${attempt}/${RETRIES}: waiting ${INTERVAL}s before checking (give client/server time to resolve)..."
-            sleep "$INTERVAL"
-
-            # Follow server redirects (Location headers); note: curl cannot run JS meta-refresh or client-side redirects
-            eff=$(curl -s -o /dev/null -w "%{url_effective} %{http_code}" -L "${TEAM_URL}" || true)
-            eff_url=$(echo "$eff" | awk '{print $1}')
-            eff_code=$(echo "$eff" | awk '{print $2}')
-
-            # canonicalize path from eff_url
-            if [ -n "$eff_url" ]; then
-              # strip scheme+host -> path (keeps leading slash)
-              tmp="${eff_url#https://}"
-              tmp="${tmp#http://}"
-              eff_path="/${tmp#*/}"
-              eff_path="${eff_path%%[\?#]*}"
-            else
-              eff_path=""
-            fi
-
-            echo " -> Effective URL: ${eff_url:-<none>}"
-            echo " -> Effective path: ${eff_path:-<none>}"
-            echo " -> Final HTTP status: ${eff_code:-<none>}"
-
-            last_eff_url="$eff_url"
-            last_eff_code="$eff_code"
-
-            if [ "$eff_path" = "$EXPECTED" ] && [ "$eff_code" = "200" ]; then
-              echo "OK: final path equals expected: ${EXPECTED} and status is 200"
-              exit 0
-            fi
-
-            echo "Not yet reached expected path/status; will retry if attempts remain."
-          done
-
-          echo "FAIL: After ${RETRIES} attempts, /team did not reach ${EXPECTED} and final status was ${last_eff_code}."
-          echo "Last effective URL: ${last_eff_url}"
-          echo "---- Snippet of the final response body (first 2000 chars) ----"
-          curl -s -L "${TEAM_URL}" | head -c 2000 || true
-            exit 1
+      - name: Run Playwright login test (Chromium)
+        run: pnpm exec playwright test e2e/login.spec.ts --browser=chromium --reporter=list
