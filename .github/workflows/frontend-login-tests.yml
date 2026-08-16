@@ -8,35 +8,41 @@ on:
 
 jobs:
   e2e-login:
-    name: Playwright login smoke
+    name: Playwright login smoke (npm)
     runs-on: ubuntu-latest
     env:
       DEPLOYED_URL: ${{ secrets.DEPLOYED_URL }}
       TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
       TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-      LOGIN_PATH: ${{ secrets.LOGIN_PATH || '/auth/signin' }}
-      EXPECTED_FINAL_PATH: ${{ secrets.EXPECTED_REDIRECT_PATH || '/team' }}
+      LOGIN_PATH: ${{'/auth/signin' }}
+      EXPECTED_FINAL_PATH: ${{'/team' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node (use pnpm or npm as needed)
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: 'npm'
 
-      - name: Enable corepack and activate pnpm
+      - name: Install dependencies (npm)
         run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
-          pnpm -v
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "No package-lock.json found — running 'npm install' instead"
+            npm install
+          fi
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: npx playwright install --with-deps
 
       - name: Run Playwright login test (Chromium)
-        run: pnpm exec playwright test e2e/login.spec.ts --browser=chromium --reporter=list
+        env:
+          DEPLOYED_URL: ${{ secrets.DEPLOYED_URL }}
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          LOGIN_PATH: ${{ secrets.LOGIN_PATH || '/auth/signin' }}
+          EXPECTED_FINAL_PATH: ${{ secrets.EXPECTED_REDIRECT_PATH || '/team' }}
+        run: npx playwright test e2e/login.spec.ts --browser=chromium --reporter=list
