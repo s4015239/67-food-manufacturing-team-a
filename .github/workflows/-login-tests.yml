@@ -2,7 +2,7 @@ name: Frontend Login & Redirect — Simple
 
 on:
   push:
-    branches: [main]
+    branches: [feature/login-styling]
   pull_request:
     branches: [main]
 
