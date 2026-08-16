@@ -8,28 +8,24 @@ const members = [
     role: 'Role',
     blurb:
       'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take monarch.',
-    photo: null,
-  },
+      photo: '/placeholder-profile.png',  },
   {
     name: 'Team Member Name',
     role: 'Role',
     blurb:
       'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take.',
-    photo: null,
-  },
+      photo: '/placeholder-profile.png',  },
   {
     name: 'Team Member Name',
     role: 'Long Role Name Example',
     blurb: 'Primary secular experience as civilization thought comfortable roar excess.',
-    photo: null,
-  },
+    photo: '/placeholder-profile.png',  },
   {
     name: 'Example of a really long team member name here',
     role: 'Role',
     blurb:
       'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take monarch velvet cylinder team glare prevent construct advice fleet.',
-    photo: null,
-  },
+      photo: '/placeholder-profile.png',  },
 ]
 
 function MemberCard({ member }: { member: (typeof members)[number] }) {
