@@ -76,13 +76,8 @@ jobs:
             last_eff_url="$eff_url"
             last_eff_code="$eff_code"
 
-            if [ "$eff_path" = "$EXPECTED" ]; then
-              echo "OK: final path equals expected: ${EXPECTED}"
-              exit 0
-            fi
-
-            if [ "$eff_code" = "200" ]; then
-              echo "OK: final HTTP status is 200 (accessible)"
+            if [ "$eff_path" = "$EXPECTED" ] && [ "$eff_code" = "200" ]; then
+              echo "OK: final path equals expected: ${EXPECTED} and status is 200"
               exit 0
             fi
 

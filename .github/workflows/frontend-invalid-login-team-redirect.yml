@@ -1,0 +1,96 @@
+name: Frontend — Invalid Login & Direct /team Access Smoke
+
+on:
+  push:
+    branches: [feature/login-styling]
+  pull_request:
+    branches: [main]
+
+jobs:
+  invalid-login-and-redirect:
+    name: Invalid login + direct /team access checks
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ secrets.DEPLOYED_URL }}
+      LOGIN_PATH: ${{'/auth/signin' }}
+      TEAM_PATH: ${{'/team' }}
+      INVALID_USERNAME: ${{'invalid@example.com' }}
+      INVALID_PASSWORD: ${{'wrongpassword' }}
+      EMAIL_FIELD: ${{'invalid@example.com' }}
+      PASS_FIELD: ${{'wrongpassword'}}
+    steps:
+      - name: Checkout (optional)
+        uses: actions/checkout@v4
+
+      - name: Run invalid-login & direct-team checks (curl)
+        run: |
+          set -euo pipefail
+
+          BASE="${BASE_URL:-}"
+          LOGIN_PATH="${LOGIN_PATH:-/login}"
+          TEAM_PATH="${TEAM_PATH:-/team}"
+          INVALID_USER="${INVALID_USERNAME:-invalid@example.com}"
+          INVALID_PASS="${INVALID_PASSWORD:-wrongpassword}"
+          EMAIL_FIELD="${EMAIL_FIELD:-email}"
+          PASS_FIELD="${PASS_FIELD:-password}"
+
+          if [ -z "$BASE" ]; then
+            echo "ERROR: DEPLOYED_URL secret is not set."
+            exit 1
+          fi
+
+          TEAM_URL="${BASE%/}${TEAM_PATH}"
+          LOGIN_URL="${BASE%/}${LOGIN_PATH}"
+
+          echo "1) Direct /team access without auth (no redirects followed)..."
+          headers=$(curl -s -I "${TEAM_URL}" || true)
+          status=$(echo "$headers" | head -n1 | awk '{print $2}' || true)
+          location=$(echo "$headers" | grep -i '^Location:' | awk '{print $2}' | tr -d '\r' || true)
+          echo " -> Initial status: ${status:-<none>}"
+          echo " -> Location: ${location:-<none>}"
+
+          if [ -z "$status" ]; then
+            echo "FAIL: No response from ${TEAM_URL}" >&2
+            exit 1
+          fi
+
+          if [[ "$status" =~ ^3 ]]; then
+            echo "OK: Unauthenticated /team returned redirect ($status)."
+          elif [ "$status" = "200" ]; then
+            echo "FAIL: /team returned 200 for unauthenticated request; expected redirect to login." >&2
+            exit 1
+          else
+            echo "WARN: /team returned unexpected status ${status}; expected 3xx redirect to login." >&2
+            exit 1
+          fi
+
+          echo
+          echo "2) Attempting invalid login (form POST with known-bad creds) and verifying /team remains protected..."
+          rm -f cookiejar || true
+
+          # Try form POST (application/x-www-form-urlencoded) to the login page
+          echo " -> POSTing bad credentials to ${LOGIN_URL}"
+          login_resp=$(curl -s -i -c cookiejar -b cookiejar -X POST \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "${EMAIL_FIELD}=${INVALID_USER}&${PASS_FIELD}=${INVALID_PASS}" \
+            "${LOGIN_URL}" || true)
+
+          login_status=$(echo "$login_resp" | head -n1 | awk '{print $2}' || true)
+          login_location=$(echo "$login_resp" | grep -i '^Location:' | awk '{print $2}' | tr -d '\r' || true)
+          echo " -> Login POST returned status: ${login_status:-<none>}, Location: ${login_location:-<none>}"
+
+          # Now attempt to access /team using any cookies that may have been set
+          team_status_after=$(curl -s -o /dev/null -w "%{http_code}" -b cookiejar "${TEAM_URL}" || true)
+          echo " -> HTTP status for /team with cookies after invalid login: ${team_status_after:-<none>}"
+
+          # If /team is 200 after posting invalid creds, something is wrong (invalid login succeeded)
+          if [ "$team_status_after" = "200" ]; then
+            echo "FAIL: After posting invalid credentials, /team returned 200 — invalid login appears to have succeeded." >&2
+            echo "---- Recent login response headers/body (truncated) ----"
+            echo "$login_resp" | sed -n '1,120p'
+            exit 1
+          else
+            # Good: still protected or redirected
+            echo "OK: Invalid login did not grant access to /team (final status ${team_status_after})."
+            exit 0
+            fi
