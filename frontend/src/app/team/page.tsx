@@ -4,28 +4,40 @@ import { useState } from 'react'
 
 const members = [
   {
-    name: 'Team Member Name',
-    role: 'Role',
+    name: 'Panagiotis Doumas',
+    role: 'Project Manager',
     blurb:
-      'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take monarch.',
-      photo: '/placeholder-profile.png',  },
+      'Leads project coordination and planning for the team, keeping tasks on track and managing the Canvas submission.',
+    photo: '/placeholder-profile.png',
+  },
   {
-    name: 'Team Member Name',
-    role: 'Role',
+    name: 'Kevin',
+    role: 'Business Analyst',
     blurb:
-      'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take.',
-      photo: '/placeholder-profile.png',  },
+      'Writes and validates requirements for each feature, making sure the team builds what the client actually needs.',
+    photo: '/placeholder-profile.png',
+  },
   {
-    name: 'Team Member Name',
-    role: 'Long Role Name Example',
-    blurb: 'Primary secular experience as civilization thought comfortable roar excess.',
-    photo: '/placeholder-profile.png',  },
-  {
-    name: 'Example of a really long team member name here',
-    role: 'Role',
+    name: 'Matthew Le',
+    role: 'UX Designer',
     blurb:
-      'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take monarch velvet cylinder team glare prevent construct advice fleet.',
-      photo: '/placeholder-profile.png',  },
+      'Designs the look and feel of the platform and creates mockups for new features, also supporting development tasks.',
+    photo: '/placeholder-profile.png',
+  },
+  {
+    name: 'Spencer Beresford',
+    role: 'Developer',
+    blurb:
+      'Builds and styles front-end features for the platform, including authentication flows and page layouts.',
+    photo: '/placeholder-profile.png',
+  },
+  {
+    name: 'Linze Cai',
+    role: 'Developer',
+    blurb:
+      'Builds and tests features for the platform, contributing to the shared codebase and infrastructure setup.',
+    photo: '/placeholder-profile.png',
+  },
 ]
 
 function MemberCard({ member }: { member: (typeof members)[number] }) {
@@ -74,10 +86,10 @@ export default function TeamPage() {
   return (
     <div className="space-y-8">
       <h1 className="text-center font-['Roboto_Condensed'] text-5xl font-extrabold text-[#472914]">
-        Team Name
+        67 - Food Manufacturing - Team A
       </h1>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
         {members.map((member, i) => (
           <MemberCard key={i} member={member} />
         ))}
