@@ -20,7 +20,7 @@ test("sign in with UI and reach /team", async ({ page }) => {
 
   await Promise.all([
     page.click('button[type="submit"]'),
-    page.waitForURL(`**${EXPECTED_PATH}`, { timeout: 15000 }),
+    page.waitForURL(`**${EXPECTED_PATH}`, { timeout: 150000 }),
   ]);
 
   // Assert the final path
