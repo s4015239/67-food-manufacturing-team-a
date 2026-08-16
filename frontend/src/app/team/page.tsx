@@ -4,25 +4,25 @@ import { useState } from 'react'
 
 const members = [
   {
-    name: 'Panagiotis Doumas',
-    role: 'Project Manager',
+    name: 'Team Member Name',
+    role: 'Role',
     blurb:
       'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take monarch.',
       photo: '/placeholder-profile.png',  },
   {
-    name: 'Linze Cai',
-    role: 'Business Analyst',
+    name: 'Team Member Name',
+    role: 'Role',
     blurb:
       'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take.',
       photo: '/placeholder-profile.png',  },
   {
-    name: 'Matthew Le',
-    role: 'UX Designer',
+    name: 'Team Member Name',
+    role: 'Long Role Name Example',
     blurb: 'Primary secular experience as civilization thought comfortable roar excess.',
     photo: '/placeholder-profile.png',  },
   {
-    name: 'Spencer Beresford',
-    role: 'Developer',
+    name: 'Example of a really long team member name here',
+    role: 'Role',
     blurb:
       'Primary secular experience as civilization thought comfortable roar excess ferry offer presentation error spokesperson federation broccoli stool clay far turn take monarch velvet cylinder team glare prevent construct advice fleet.',
       photo: '/placeholder-profile.png',  },
