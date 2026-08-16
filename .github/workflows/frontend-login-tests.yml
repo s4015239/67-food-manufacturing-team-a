@@ -43,6 +43,6 @@ jobs:
           DEPLOYED_URL: ${{ secrets.DEPLOYED_URL }}
           TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-          LOGIN_PATH: ${{ secrets.LOGIN_PATH || '/auth/signin' }}
-          EXPECTED_FINAL_PATH: ${{ secrets.EXPECTED_REDIRECT_PATH || '/team' }}
+          LOGIN_PATH: ${{'/auth/signin' }}
+          EXPECTED_FINAL_PATH: ${{'/team' }}
         run: npx playwright test e2e/login.spec.ts --browser=chromium --reporter=list
