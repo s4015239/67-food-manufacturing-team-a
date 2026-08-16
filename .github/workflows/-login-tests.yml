@@ -1,0 +1,80 @@
+name: Frontend Login & Redirect — Simple
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  login-redirect-smoke:
+    name: Login + Redirect Smoke Test
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ secrets.DEPLOYED_URL }}
+      TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+    steps:
+      - name: Checkout (optional)
+        uses: actions/checkout@v4
+
+      - name: Lightweight login & redirect checks (curl)
+        run: |
+          set -euo pipefail
+
+          BASE_URL="${BASE_URL:-}"
+          LOGIN_PATH="${LOGIN_PATH:-/login}"
+          TEAM_PATH="${TEAM_PATH:-/team}"
+          EMAIL_FIELD="${EMAIL_FIELD:-email}"
+          PASS_FIELD="${PASS_FIELD:-password}"
+          USERNAME="${TEST_USERNAME:-}"
+          PASSWORD="${TEST_PASSWORD:-}"
+
+          if [ -z "$BASE_URL" ]; then
+            echo "ERROR: BASE_URL (DEPLOYED_URL secret) is not set."
+            exit 1
+          fi
+          if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+            echo "ERROR: TEST_USERNAME and TEST_PASSWORD secrets must be set."
+            exit 1
+          fi
+
+          echo "1) Checking unauthenticated access to ${BASE_URL}${TEAM_PATH} ..."
+          status=$(curl -s -o /dev/null -w "%{http_code}" -I "${BASE_URL}${TEAM_PATH}")
+          echo " -> HTTP status for initial /team request: $status"
+          if [ "$status" = "200" ]; then
+            echo "FAIL: /team returned 200 for unauthenticated request; expected a redirect (3xx)." >&2
+            exit 1
+          fi
+          if [ "$status" = "301" ] || [ "$status" = "302" ] || [ "$status" = "303" ] || [ "$status" = "307" ] || [ "$status" = "308" ]; then
+            echo "OK: Unauthenticated /team correctly returned redirect ($status)."
+          else
+            echo "WARN: /team returned unexpected status $status (neither 200 nor 3xx)." >&2
+            exit 1
+          fi
+
+          echo "2) Attempting form POST login to ${BASE_URL}${LOGIN_PATH} ..."
+          rm -f cookiejar || true
+          resp_headers=$(curl -s -i -X POST -c cookiejar \
+            -d "${EMAIL_FIELD}=${USERNAME}&${PASS_FIELD}=${PASSWORD}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            "${BASE_URL}${LOGIN_PATH}" || true)
+          status_line=$(echo "$resp_headers" | head -n1 || true)
+          status_code=$(echo "$status_line" | awk '{print $2}' || true)
+          location=$(echo "$resp_headers" | grep -i '^Location:' | awk '{print $2}' | tr -d '\r' || true)
+          echo " -> Login POST returned status ${status_code}; Location: ${location:-<none>}"
+
+          echo "3) Accessing ${BASE_URL}${TEAM_PATH} using returned session cookies ..."
+          team_status=$(curl -s -o /dev/null -w "%{http_code}" -b cookiejar "${BASE_URL}${TEAM_PATH}" || true)
+          echo " -> HTTP status when requesting /team with cookies: $team_status"
+
+          if [ "$team_status" = "200" ]; then
+            echo "SUCCESS: Login flow worked and /team is accessible (HTTP 200)."
+            exit 0
+          else
+            echo "FAIL: After login, /team returned $team_status (expected 200). Login/redirect did not complete as expected." >&2
+            # Optionally print response headers for debugging:
+            echo "---- Recent response headers from login POST ----"
+            echo "$resp_headers"
+            exit 1
+            fi

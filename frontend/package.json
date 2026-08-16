@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "playwright test e2e/happy-path.spec.ts --project=chromium"
   },
   "dependencies": {
     "next": "16.2.12",
@@ -50,4 +52,5 @@
     "@vitejs/plugin-react": "^4.4.1",
     "jsdom": "^26.1.0"
   }
+  
 }
